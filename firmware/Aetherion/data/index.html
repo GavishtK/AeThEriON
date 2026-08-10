@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AETHERION // Flight Instrumentation System</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header id="topbar">
+    <div class="topbar-left">
+        <span class="logo">AETHERION</span>
+        <span class="logo-sub">// FLIGHT INSTRUMENTATION</span>
+    </div>
+    <div class="topbar-center">
+        <button class="tab active" data-tab="live">LIVE</button>
+        <button class="tab" data-tab="record">RECORD</button>
+        <button class="tab" data-tab="analysis">ANALYSIS</button>
+        <button class="tab" data-tab="settings">SETTINGS</button>
+    </div>
+    <div class="topbar-right">
+        <div class="conn-status">
+            <span id="connDot" class="dot red"></span>
+            <span id="connText">DISCONNECTED</span>
+            <span class="separator">|</span>
+            <span id="rateText">0 Hz</span>
+        </div>
+        <div class="conn-info">
+            <div class="conn-row">
+                <span class="conn-label">ESP32</span>
+                <span id="connIP" class="conn-value">—</span>
+            </div>
+            <div class="conn-row">
+                <span class="conn-label">UPTIME</span>
+                <span id="uptime" class="conn-value">00:00:00</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- TAB: LIVE -->
+<main id="tab-live" class="tab-content active">
+    <div class="live-grid">
+
+        <!-- ATTITUDE DISPLAY -->
+        <section class="panel attitude">
+            <div class="panel-header">ATTITUDE</div>
+            <canvas id="horizonCanvas" width="500" height="400"></canvas>
+            <div class="attitude-readout">
+                <div class="readout-item">
+                    <span class="readout-label">ROLL</span>
+                    <span id="attRoll" class="readout-value">0.0&deg;</span>
+                </div>
+                <div class="readout-item">
+                    <span class="readout-label">PITCH</span>
+                    <span id="attPitch" class="readout-value">0.0&deg;</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELEMETRY PANEL -->
+        <section class="panel telemetry">
+            <div class="panel-header">REAL-TIME TELEMETRY</div>
+            <div class="telem-section">
+                <div class="telem-title">ACCELEROMETER</div>
+                <div class="telem-row"><span>AX</span><span id="tAx" class="telem-val">0.00</span><span class="telem-unit">m/s&sup2;</span></div>
+                <div class="telem-row"><span>AY</span><span id="tAy" class="telem-val">0.00</span><span class="telem-unit">m/s&sup2;</span></div>
+                <div class="telem-row"><span>AZ</span><span id="tAz" class="telem-val">0.00</span><span class="telem-unit">m/s&sup2;</span></div>
+            </div>
+            <div class="telem-section">
+                <div class="telem-title">GYROSCOPE</div>
+                <div class="telem-row"><span>GX</span><span id="tGx" class="telem-val">0.000</span><span class="telem-unit">rad/s</span></div>
+                <div class="telem-row"><span>GY</span><span id="tGy" class="telem-val">0.000</span><span class="telem-unit">rad/s</span></div>
+                <div class="telem-row"><span>GZ</span><span id="tGz" class="telem-val">0.000</span><span class="telem-unit">rad/s</span></div>
+            </div>
+            <div class="telem-section">
+                <div class="telem-title">ATTITUDE</div>
+                <div class="telem-row"><span>ROLL</span><span id="tRoll" class="telem-val">0.0</span><span class="telem-unit">&deg;</span></div>
+                <div class="telem-row"><span>PITCH</span><span id="tPitch" class="telem-val">0.0</span><span class="telem-unit">&deg;</span></div>
+            </div>
+            <div class="telem-section">
+                <div class="telem-title">G-FORCE</div>
+                <div class="telem-row"><span>G</span><span id="tGforce" class="telem-val">1.00</span><span class="telem-unit">G</span></div>
+            </div>
+        </section>
+
+        <!-- GRAPHS -->
+        <section class="panel graphs">
+            <div class="panel-header">LIVE FLIGHT DATA</div>
+            <div class="graph-tabs">
+                <button class="gtab active" data-graph="roll">ROLL</button>
+                <button class="gtab" data-graph="pitch">PITCH</button>
+                <button class="gtab" data-graph="gforce">G-FORCE</button>
+                <button class="gtab" data-graph="gyro">GYRO</button>
+            </div>
+            <div class="graph-container">
+                <canvas id="graphRoll" class="graph-canvas active" data-graph="roll" width="600" height="180"></canvas>
+                <canvas id="graphPitch" class="graph-canvas" data-graph="pitch" width="600" height="180"></canvas>
+                <canvas id="graphGforce" class="graph-canvas" data-graph="gforce" width="600" height="180"></canvas>
+                <canvas id="graphGyro" class="graph-canvas" data-graph="gyro" width="600" height="180"></canvas>
+            </div>
+        </section>
+
+        <!-- STATUS BAR -->
+        <section class="panel status-bar">
+            <div class="status-item">
+                <span class="status-label">STATE</span>
+                <span id="flightState" class="status-value state">LEVEL</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">STABILITY</span>
+                <span id="stability" class="status-value">---%</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">G-FORCE</span>
+                <span id="statusG" class="status-value">1.00 G</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">PACKETS</span>
+                <span id="pktCount" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">RATE</span>
+                <span id="statusRate" class="status-value">0 Hz</span>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- TAB: RECORD -->
+<main id="tab-record" class="tab-content">
+    <div class="record-grid">
+        <section class="panel record-controls">
+            <div class="panel-header">FLIGHT RECORDING</div>
+            <div class="record-status">
+                <span id="recDot" class="dot red"></span>
+                <span id="recText">IDLE</span>
+            </div>
+            <div class="record-info">
+                <div class="rec-row"><span>Duration</span><span id="recDuration">00:00:00</span></div>
+                <div class="rec-row"><span>Samples</span><span id="recSamples">0</span></div>
+                <div class="rec-row"><span>Rate</span><span id="recRate">0 Hz</span></div>
+            </div>
+            <div class="record-buttons">
+                <button id="btnRecord" class="btn btn-red">START RECORDING</button>
+                <button id="btnPause" class="btn btn-yellow" disabled>PAUSE</button>
+                <button id="btnStop" class="btn btn-green" disabled>STOP</button>
+                <button id="btnClear" class="btn btn-gray">CLEAR</button>
+                <button id="btnExportCSV" class="btn btn-blue">EXPORT CSV</button>
+                <button id="btnExportJSON" class="btn btn-blue">EXPORT JSON</button>
+            </div>
+        </section>
+
+        <section class="panel sessions">
+            <div class="panel-header">FLIGHT SESSIONS</div>
+            <div id="sessionList" class="session-list">
+                <div class="session-empty">NO SESSIONS RECORDED</div>
+            </div>
+        </section>
+
+        <section class="panel record-graph">
+            <div class="panel-header">RECORDING PREVIEW</div>
+            <canvas id="recGraph"></canvas>
+        </section>
+    </div>
+</main>
+
+<!-- TAB: ANALYSIS -->
+<main id="tab-analysis" class="tab-content">
+    <div class="analysis-grid">
+
+        <!-- REPLAY -->
+        <section class="panel replay">
+            <div class="panel-header">FLIGHT REPLAY</div>
+            <div id="replayEmpty" class="replay-empty">SELECT A SESSION TO ANALYZE</div>
+            <div id="replayContent" class="replay-content" style="display:none">
+                <canvas id="replayHorizon" width="500" height="350"></canvas>
+                <div class="replay-controls">
+                    <button id="rpStart" class="btn btn-sm">⏮</button>
+                    <button id="rpPlay" class="btn btn-sm btn-green">▶</button>
+                    <button id="rpPause" class="btn btn-sm btn-yellow">⏸</button>
+                    <span id="rpTime">00:00.00 / 00:00.00</span>
+                    <input type="range" id="rpSlider" min="0" max="100" value="0" class="slider">
+                </div>
+            </div>
+        </section>
+
+        <!-- STABILITY -->
+        <section class="panel stability">
+            <div class="panel-header">FLIGHT STABILITY</div>
+            <div id="stabilityContent">
+                <div class="stab-row"><span>Roll RMS</span><span id="stabRollRMS">---&deg;</span></div>
+                <div class="stab-row"><span>Pitch RMS</span><span id="stabPitchRMS">---&deg;</span></div>
+                <div class="stab-row"><span>Angular-rate RMS</span><span id="stabAngRMS">--- rad/s</span></div>
+                <div class="stab-row"><span>Roll Peak</span><span id="stabRollPeak">---&deg;</span></div>
+                <div class="stab-row"><span>Pitch Peak</span><span id="stabPitchPeak">---&deg;</span></div>
+                <div class="stab-row"><span>G-Force Peak</span><span id="stabGPeak">--- G</span></div>
+                <div class="stab-score">
+                    <span>STABILITY SCORE</span>
+                    <span id="stabScore" class="score-value">---</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTROL ANALYSIS -->
+        <section class="panel control">
+            <div class="panel-header">CONTROL ANALYSIS</div>
+            <div id="controlContent">
+                <div class="ctrl-row"><span>Roll Control</span><span id="ctrlRoll" class="ctrl-badge">---</span></div>
+                <div class="ctrl-row"><span>Pitch Control</span><span id="ctrlPitch" class="ctrl-badge">---</span></div>
+                <div class="ctrl-row"><span>Correction Rate</span><span id="ctrlCorr" class="ctrl-badge">---</span></div>
+                <div class="ctrl-row"><span>Oscillation</span><span id="ctrlOsc" class="ctrl-badge">---</span></div>
+                <div class="ctrl-row"><span>Recovery</span><span id="ctrlRecov" class="ctrl-badge">---</span></div>
+            </div>
+        </section>
+
+        <!-- SENSOR HEALTH -->
+        <section class="panel health">
+            <div class="panel-header">SENSOR HEALTH</div>
+            <div id="healthContent">
+                <div class="health-row"><span>MPU6050</span><span id="hpIMU" class="dot green"></span></div>
+                <div class="health-row"><span>Accelerometer</span><span id="hpAccel" class="dot green"></span></div>
+                <div class="health-row"><span>Gyroscope</span><span id="hpGyro" class="dot green"></span></div>
+                <div class="health-row"><span>OLED</span><span id="hpOLED" class="dot green"></span></div>
+                <div class="health-row"><span>Wi-Fi</span><span id="hpWiFi" class="dot green"></span></div>
+                <div class="health-bar">
+                    <span>Data Quality</span>
+                    <div class="bar-track"><div id="hpQuality" class="bar-fill" style="width:100%"></div></div>
+                    <span id="hpQualityText">100%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM PERF -->
+        <section class="panel perf">
+            <div class="panel-header">SYSTEM PERFORMANCE</div>
+            <div id="perfContent">
+                <div class="perf-row"><span>Telemetry rate</span><span id="pfRate">0 Hz</span></div>
+                <div class="perf-row"><span>Browser FPS</span><span id="pfFPS">0</span></div>
+                <div class="perf-row"><span>Packet loss</span><span id="pfLoss">0.0%</span></div>
+                <div class="perf-row"><span>Avg latency</span><span id="pfLatAvg">0 ms</span></div>
+                <div class="perf-row"><span>Max latency</span><span id="pfLatMax">0 ms</span></div>
+            </div>
+        </section>
+
+        <!-- ML PANEL -->
+        <section class="panel mlpanel" id="mlPanel">
+            <div class="panel-header">AI ANALYSIS</div>
+            <div id="mlContent">
+                <div class="ml-row"><span>Model</span><span id="mlModel" class="ml-value">—</span></div>
+                <div class="ml-row"><span>Flight State</span><span id="mlState" class="ml-value">—</span></div>
+                <div class="ml-row"><span>Confidence</span><span id="mlConf" class="ml-value">—%</span></div>
+                <div class="ml-row"><span>Pilot Stability</span><span id="mlPilot" class="ml-value">—%</span></div>
+                <div class="ml-row"><span>Anomaly</span><span id="mlAnomaly" class="ml-value">—</span></div>
+                <div class="ml-comparison">
+                    <button class="gtab" data-model="rf">RANDOM FOREST</button>
+                    <button class="gtab" data-model="xgb">XGBOOST</button>
+                    <button class="gtab" data-model="nn">NEURAL NETWORK</button>
+                    <button class="gtab" data-model="svm">SVM</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- TAB: SETTINGS -->
+<main id="tab-settings" class="tab-content">
+    <div class="settings-grid">
+        <section class="panel">
+            <div class="panel-header">CONNECTION</div>
+            <div class="setting-row">
+                <span>ESP32 IP</span>
+                <input type="text" id="setIP" class="input" value="192.168.4.1">
+            </div>
+            <div class="setting-row">
+                <span>WebSocket Port</span>
+                <input type="text" id="setPort" class="input" value="81">
+            </div>
+            <div class="setting-row">
+                <button id="btnReconnect" class="btn btn-blue">RECONNECT</button>
+            </div>
+        </section>
+        <section class="panel">
+            <div class="panel-header">TELEMETRY</div>
+            <div class="setting-row">
+                <span>Graph Window (samples)</span>
+                <input type="number" id="setGraphWindow" class="input" value="200">
+            </div>
+            <div class="setting-row">
+                <span>Dead Zone (&deg;)</span>
+                <input type="number" id="setDeadZone" class="input" value="2">
+            </div>
+        </section>
+        <section class="panel">
+            <div class="panel-header">DISPLAY</div>
+            <div class="setting-row">
+                <span>Units</span>
+                <select id="setUnits" class="input">
+                    <option value="deg">Degrees</option>
+                    <option value="rad">Radians</option>
+                </select>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- ALERT -->
+<div id="alert" class="alert hidden"></div>
+
+<script src="js/app.js"></script>
+<script src="js/horizon.js"></script>
+<script src="js/graphs.js"></script>
+<script src="js/recorder.js"></script>
+<script src="js/flight-state.js"></script>
+<script src="js/analysis.js"></script>
+<script src="js/settings.js"></script>
+</body>
+</html>

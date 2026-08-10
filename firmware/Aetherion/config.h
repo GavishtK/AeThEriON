@@ -5,7 +5,7 @@
 // Project Information
 // =====================================================
 
-#define PROJECT_NAME    "AeroGyro AI"
+#define PROJECT_NAME    "Aetherion AI"
 #define VERSION         "1.0"
 
 // =====================================================
@@ -23,12 +23,29 @@
 
 #define SDA_PIN         21
 #define SCL_PIN         22
+#define I2C_CLOCK_HZ    400000
 
 // =====================================================
 // MPU6050
 // =====================================================
 
 #define MPU_ADDRESS     0x68
+
+// =====================================================
+// Wi-Fi (Access Point mode)
+// =====================================================
+
+#define AP_SSID         "Aetherion"
+#define AP_PASSWORD     "aetherion123"
+#define AP_CHANNEL      1
+#define AP_HIDDEN       0
+#define AP_MAX_CONN     8
+
+// =====================================================
+// Web Server (HTTP dashboard)
+// =====================================================
+
+#define HTTP_PORT       80
 
 // =====================================================
 // RGB LED
@@ -43,7 +60,8 @@
 // Display
 // =====================================================
 
-#define DISPLAY_FPS     50
+#define DISPLAY_FPS     25
+#define OLED_TASK_PRIO  1
 
 // =====================================================
 // Calibration

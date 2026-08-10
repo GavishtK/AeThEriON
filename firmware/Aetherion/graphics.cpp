@@ -229,9 +229,9 @@ void bootScreen()
     );
 
     u8g2.drawStr(
-        10,
+        5,
         22,
-        "AERO"
+        "AETHERION"
     );
 
     u8g2.setFont(
@@ -239,9 +239,9 @@ void bootScreen()
     );
 
     u8g2.drawStr(
-        20,
+        30,
         42,
-        "GYRO AI"
+        "AI"
     );
 
     u8g2.setFont(
@@ -249,7 +249,7 @@ void bootScreen()
     );
 
     u8g2.drawStr(
-        28,
+        35,
         60,
         "Version 1.0"
     );
