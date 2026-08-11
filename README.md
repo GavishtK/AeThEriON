@@ -66,11 +66,13 @@ The ESP32 runs in **Access Point mode**, creating its own Wi-Fi network so no ro
 graph TB
     subgraph "ESP32 Microcontroller"
         IMU[MPU6050 IMU<br/>I2C 400 kHz]
-        OLED[0.96\" OLED 128×64<br/>SSD1306 / SH1106]
-        WiFi[WiFi Access Point<br/>`Aetherion`]
+        OLED[0.96" OLED 128x64<br/>SSD1306 / SH1106]
+        WiFi[WiFi Access Point<br/>Aetherion]
         WS[WebSocket Server<br/>Port 81]
         HTTP[HTTP Server<br/>Port 80 / LittleFS]
         RGB[RGB LED<br/>Status Indicator]
+        OLEDTask[OLED Task<br/>25 FPS / Core 0]
+        MainLoop[Main Loop<br/>50 Hz IMU + Telemetry]
     end
 
     subgraph "Web Dashboard (Browser)"
@@ -80,11 +82,6 @@ graph TB
         Graphs[Live Graphs<br/>15 FPS]
         Recorder[Flight Recorder<br/>IndexedDB]
         Analysis[AI Analysis<br/>ML Models]
-    end
-
-    subgraph "FreeRTOS Tasks"
-        OLEDTask[OLED Task<br/>25 FPS<br/>Core 0]
-        MainLoop[Main Loop<br/>50 Hz IMU / WS]
     end
 
     IMU -->|I2C| MainLoop
