@@ -60,48 +60,6 @@ The ESP32 runs in **Access Point mode**, creating its own Wi-Fi network so no ro
 
 ## System Architecture <a name="system-architecture"></a>
 
-### High-Level Architecture
-
-```mermaid
-graph TB
-    subgraph "ESP32 Microcontroller"
-        IMU[MPU6050 IMU<br/>I2C 400 kHz]
-        OLED[0.96" OLED 128x64<br/>SSD1306 / SH1106]
-        WiFi[WiFi Access Point<br/>Aetherion]
-        WS[WebSocket Server<br/>Port 81]
-        HTTP[HTTP Server<br/>Port 80 / LittleFS]
-        RGB[RGB LED<br/>Status Indicator]
-        OLEDTask[OLED Task<br/>25 FPS / Core 0]
-        MainLoop[Main Loop<br/>50 Hz IMU + Telemetry]
-    end
-
-    subgraph "Web Dashboard (Browser)"
-        Browser[Browser]
-        Horizon[Artificial Horizon<br/>60 FPS Canvas]
-        Telemetry[Telemetry Panel<br/>15 Hz Updates]
-        Graphs[Live Graphs<br/>15 FPS]
-        Recorder[Flight Recorder<br/>IndexedDB]
-        Analysis[AI Analysis<br/>ML Models]
-    end
-
-    IMU -->|I2C| MainLoop
-    MainLoop -->|I2C Mutex| IMU
-    MainLoop -->|I2C Mutex| OLEDTask
-    OLEDTask -->|Draw PFD| OLED
-    MainLoop -->|Broadcast JSON| WS
-    MainLoop -->|HTTP Client| HTTP
-    WiFi -->|WiFi Radio| Browser
-    WS -->|Telemetry Stream| Browser
-    HTTP -->|Serve Dashboard| Browser
-    Browser -->|WebSocket Connect| WS
-    Browser -->|Canvas Rendering| Horizon
-    Browser -->|DOM Updates| Telemetry
-    Browser -->|Canvas Rendering| Graphs
-    Browser -->|IndexedDB| Recorder
-    Browser -->|ML Inference| Analysis
-    RGB -->|Boot / Ready / Error| WiFi
-```
-
 ### Firmware Module Architecture
 
 ```mermaid
