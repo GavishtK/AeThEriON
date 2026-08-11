@@ -358,10 +358,6 @@ The Analysis tab supports four ML models for flight state classification:
 
 ## Screenshots <a name="screenshots"></a>
 
-### System Architecture
-
-<img src="screenshots/flowchart.png" alt="System Architecture Flowchart" width="100%"/>
-
 ### Dashboard — Live Tab
 
 Real-time attitude indicator with artificial horizon, telemetry panel, live graphs, flight state, and status bar:
